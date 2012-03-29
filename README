@@ -1,0 +1,2 @@
+C wrapper library and python module (using ctypes and numpy)
+to control the HPTDC8-PCI card from Cronologic.
