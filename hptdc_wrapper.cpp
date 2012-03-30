@@ -5,6 +5,9 @@
 //#include <list>
 #include <fstream>
 
+
+// Exceptions
+
 char *error_string = NULL;
 size_t error_string_size = 0;
 
@@ -26,6 +29,9 @@ void tdc_set_error_string(const char * error)
   strncpy(error_string, error, error_size);
 }
 
+
+// Creation and destruction
+
 tdc_manager tdc_manager_create(USHORT vendor_id,
 			       USHORT device_id)
 {
@@ -42,6 +48,9 @@ void tdc_manager_destroy(tdc_manager manager)
   TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
   delete ref;
 }
+
+
+// Startup and cleanup
 
 int tdc_manager_init(tdc_manager manager)
 {
@@ -73,10 +82,53 @@ int tdc_manager_cleanup(tdc_manager manager)
   }
 }
 
-int tdc_manager_get_state(tdc_manager manager)
+int tdc_manager_get_tdc_count(tdc_manager manager)
 {
   TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
-  return ref->GetState();
+  return ref->GetTDCCount();
+}
+
+
+// Configuration
+
+int tdc_manager_set_parameter_config(tdc_manager manager,
+				     const char * config)
+{
+  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
+  try {
+    return (int) ref->SetParameter(config);
+  }
+  catch (TDCConfigException &e) {
+    tdc_set_error_string(e.errorString);
+    return -1;
+  }
+}
+
+int tdc_manager_read_config_string(tdc_manager manager,
+				   const char * parameter)
+{
+  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
+  try {
+    return (int) ref->ReadConfigString(parameter);
+  }
+  catch (TDCConfigException &e) {
+    tdc_set_error_string(e.errorString);
+    return -1;
+  }
+}
+
+int tdc_manager_set_parameter(tdc_manager manager,
+			      const char * property,
+			      const char * value)
+{
+  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
+  try {
+    return (int) ref->SetParameter(property, value);
+  }
+  catch (TDCConfigException &e) {
+    tdc_set_error_string(e.errorString);
+    return -1;
+  }
 }
 
 int tdc_manager_read_config_file(tdc_manager manager,
@@ -84,7 +136,19 @@ int tdc_manager_read_config_file(tdc_manager manager,
 {
   TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
   try {
-    ref->ReadConfigFile(filename);
+    return (int) ref->ReadConfigFile(filename);
+  }
+  catch (TDCConfigException &e) {
+    tdc_set_error_string(e.errorString);
+    return -1;
+  }
+}
+
+int tdc_manager_reconfigure(tdc_manager manager)
+{
+  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
+  try {
+    ref->Reconfigure();
     return 0;
   }
   catch (TDCConfigException &e) {
@@ -92,6 +156,32 @@ int tdc_manager_read_config_file(tdc_manager manager,
     return -1;
   }
 }
+
+
+// Reflection
+
+const char * tdc_manager_get_parameter(tdc_manager manager,
+				       const char * parameter)
+{
+  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
+  return ref->GetParameter(parameter);
+}
+
+const char ** tdc_manager_get_parameter_names(tdc_manager manager,
+					      int * count)
+{
+  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
+  return ref->GetParameterNames(*count);
+}
+
+int tdc_manager_get_driver_version(tdc_manager manager)
+{
+  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
+  return ref->GetDriverVersion();
+}
+
+
+// Control
 
 int tdc_manager_start(tdc_manager manager)
 {
@@ -158,11 +248,27 @@ int tdc_manager_clear_buffer(tdc_manager manager)
   }
 }
 
-int tdc_manager_get_tdc_count(tdc_manager manager)
+TDCInfo tdc_manager_get_tdc_info(tdc_manager manager,
+				 int index)
 {
   TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
-  return ref->GetTDCCount();
+  return ref->GetTDCInfo(index);
 }
+
+int tdc_manager_get_state(tdc_manager manager)
+{
+  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
+  return ref->GetState();
+}
+
+long long tdc_manager_get_tdc_status_register(tdc_manager manager)
+{
+  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
+  return ref->GetTDCStatusRegister();
+}
+
+
+// Readout
 
 int tdc_manager_read(tdc_manager manager,
 		     HIT * out,
@@ -170,17 +276,6 @@ int tdc_manager_read(tdc_manager manager,
 {
   TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
   return ref->Read(out, size);
-}
-
-int tdc_manager_blocking_read(tdc_manager manager,
-			      HIT * out,
-			      int size)
-{
-  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
-  int count = 0;
-  while (count < size)
-    count += ref->Read(out + count, size - count);
-  return count;
 }
 
 int tdc_manager_read_tdc_hit(tdc_manager manager,
@@ -191,71 +286,8 @@ int tdc_manager_read_tdc_hit(tdc_manager manager,
   return ref->ReadTDCHit(buffer, length);
 }
 
-int tdc_manager_blocking_read_tdc_hit(tdc_manager manager,
-				      TDCHit * buffer,
-				      int length)
-{
-  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
-  int count = 0;
-  while (count < length)
-    count += ref->ReadTDCHit(buffer + count, length - count);
-  return count;
-}
 
-int tdc_manager_set_parameter_config(tdc_manager manager,
-				     const char * config)
-{
-  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
-  return (int) ref->SetParameter(config);
-}
-
-int tdc_manager_set_parameter(tdc_manager manager,
-			      const char * property,
-			      const char * value)
-{
-  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
-  return (int) ref->SetParameter(property, value);
-}
-
-const char * tdc_manager_get_parameter(tdc_manager manager,
-				       const char * parameter)
-{
-  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
-  return ref->GetParameter(parameter);
-}
-
-const char ** tdc_manager_get_parameter_names(tdc_manager manager,
-					      int * count)
-{
-  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
-  return ref->GetParameterNames(*count);
-}
-
-int tdc_manager_get_driver_version(tdc_manager manager)
-{
-  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
-  return ref->GetDriverVersion();
-}
-
-int tdc_manager_reconfigure(tdc_manager manager)
-{
-  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
-  try {
-    ref->Reconfigure();
-    return 0;
-  }
-  catch (TDCConfigException &e) {
-    tdc_set_error_string(e.errorString);
-    return -1;
-  }
-}
-
-TDCInfo tdc_manager_get_tdc_info(tdc_manager manager,
-				 int index)
-{
-  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
-  return ref->GetTDCInfo(index);
-}
+// For testing purposes
 
 int tdc_pretty_print_hit(HIT hit, char* buffer)
 {
@@ -270,9 +302,9 @@ int tdc_pretty_print_hit(HIT hit, char* buffer)
 }
 
 // This is the C++ code example from the cronologic manual.
-int tdc_example_read(const char * configfile,
-		     const char * outputfile,
-		     int amount_to_read)
+int tdc_example(const char * configfile,
+		const char * outputfile,
+		int amount_to_read)
 {
   TDCManager manager(0x1A13, 0x0001);
   
@@ -282,9 +314,11 @@ int tdc_example_read(const char * configfile,
     manager.Start();
   }
   catch (TDCConfigException& e) {
+    tdc_set_error_string(e.errorString);
     return -1;
   }
 
+  int amount_to_read = 1000000;
   HIT buffer[2000];
   ofstream of(outputfile, ios::out | ios::binary);
   const unsigned long res = 0x200061a8;

@@ -1,2 +1,12 @@
-C wrapper library and python module (using ctypes and numpy)
-to control the HPTDC8-PCI card from Cronologic.
+C wrapper library and python module (using ctypes and numpy) to
+control the HPTDC8-PCI card from Cronologic.
+
+The C wrapper library, hptdc_wrapper.dll, is included, but if you want
+to build it yourself, the Makefile is also included.  It should build
+fine with Visual Studio Express 2010 and nmake.
+
+Available classes are TDCManager and TDCHit. All methods of TDCManager
+are available, but in underscore_case (since CamelCase is
+evil). E.g. instead of ReadTDCHit, you call read_tdc_hit. The method
+Continue is called continu because python disallows a method with that
+name.
