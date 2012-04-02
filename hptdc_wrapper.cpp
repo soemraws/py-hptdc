@@ -261,11 +261,11 @@ int tdc_manager_get_state(tdc_manager manager)
   return ref->GetState();
 }
 
-long long tdc_manager_get_tdc_status_register(tdc_manager manager)
-{
-  TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
-  return ref->GetTDCStatusRegister();
-}
+// long long tdc_manager_get_tdc_status_register(tdc_manager manager)
+// {
+//   TDCManager * ref = reinterpret_cast<TDCManager *>(manager);
+//   return ref->GetTDCStatusRegister();
+// }
 
 
 // Readout
@@ -318,7 +318,6 @@ int tdc_example(const char * configfile,
     return -1;
   }
 
-  int amount_to_read = 1000000;
   HIT buffer[2000];
   ofstream of(outputfile, ios::out | ios::binary);
   const unsigned long res = 0x200061a8;

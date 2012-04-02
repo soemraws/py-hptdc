@@ -119,8 +119,8 @@ extern "C" {
   DLLIMPORT
   int tdc_manager_get_state(tdc_manager manager);
 
-  DLLIMPORT
-  long long tdc_manager_get_tdc_status_register(tdc_manager manager);
+  //  DLLIMPORT
+  //  long long tdc_manager_get_tdc_status_register(tdc_manager manager);
 
   
   // Readout
