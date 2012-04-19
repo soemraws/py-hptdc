@@ -151,7 +151,7 @@ class TDCManager(object):
 
     def __del__(self):
         if self._ptr is not None:
-            state = self._get_state()
+            state = self.get_state()
             if state == 3 or state == 4:
                 hptdc_wrapper.tdc_manager_stop(self._ptr)
             if state > 0 and state != 5:
