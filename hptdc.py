@@ -414,9 +414,32 @@ class TDCHit(ctypes.Structure):
 
 
 
-# Below is the C++ example program from the manual, converted to python
+def test_read_tdc_hit(output='myexperiment.csv',config='myexperiment.cfg'):
+    '''This is a translation to python of the C# example on page 24 of the manual.'''
+    manager = TDCManager(0x1a13, 0x0001)
 
-if __name__ == '__main__':
+    manager.init()
+    manager.read_config_file(config)
+    manager.start()
+
+    amount_to_read = 1000000
+    buffer = (TDCHit * 2000)()
+
+    of = open(output, 'w')
+
+    while amount_to_read > 0:
+        count = manager.read_hptdc_hit(buffer)
+        for i in range(count):
+            of.write('%d, %d, %d\n' % (buffer[i].channel, buffer[i].type, buffer[i].time)
+        amount_to_read -= count
+
+    of.close()
+    manager.stop()
+    manager.clean_up()
+
+
+def test_read(output='test.dat', config='myexperiment.cfg')
+    '''This is a translation to python of the C++ example on page 24 of the manual.'''
     import struct
     
     manager = TDCManager(0x1a13, 0x0001)
@@ -425,12 +448,12 @@ if __name__ == '__main__':
     manager.read_config_file('myexperiment.cfg')
     manager.start()
 
+    amount_to_read = 1000000
+    buffer = numpy.empty(2000, dtype='uint32', order='C')
     of = open('test.dat', 'wb')
     of.write(struct.pack('<L', 0x200061a8))
     
-    amount_to_read = 1000000
-    buffer = numpy.empty(2000, dtype='uint32', order='C')
-    while (amount_to_read > 0):
+    while amount_to_read > 0:
         count = manager.read(buffer)
         for i in range(min(count,amount_to_read)):
             of.write(struct.pack('<L', int(buffer[i])))
@@ -439,3 +462,8 @@ if __name__ == '__main__':
     of.close()
     manager.stop()
     manager.clean_up()
+
+
+# If run as a script, then run the C++ example.
+if __name__ == '__main__':
+    test_read()
