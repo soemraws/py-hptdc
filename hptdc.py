@@ -428,9 +428,9 @@ def test_read_tdc_hit(output='myexperiment.csv',config='myexperiment.cfg'):
     of = open(output, 'w')
 
     while amount_to_read > 0:
-        count = manager.read_hptdc_hit(buffer)
+        count = manager.read_tdc_hit(buffer)
         for i in range(count):
-            of.write('%d, %d, %d\n' % (buffer[i].channel, buffer[i].type, buffer[i].time)
+            of.write('%d, %d, %d\n' % (buffer[i].channel, buffer[i].type, buffer[i].time))
         amount_to_read -= count
 
     of.close()
@@ -438,7 +438,7 @@ def test_read_tdc_hit(output='myexperiment.csv',config='myexperiment.cfg'):
     manager.clean_up()
 
 
-def test_read(output='test.dat', config='myexperiment.cfg')
+def test_read(output='test.dat', config='myexperiment.cfg'):
     '''This is a translation to python of the C++ example on page 24 of the manual.'''
     import struct
     
