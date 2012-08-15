@@ -414,54 +414,59 @@ class TDCHit(ctypes.Structure):
 
 
 
-def test_read_tdc_hit(output='myexperiment.csv',config='myexperiment.cfg'):
-    '''This is a translation to python of the C# example on page 24 of the manual.'''
+def test_read_tdc_hit(output='myexperiment.csv',config='myexperiment.cfg',
+                      amount_to_read=1000000):
+    '''This is a translation to python of the C# example on page 24 of
+    the manual, with the output file, configuration file and amount of
+    events to read as arguments.'''
     manager = TDCManager(0x1a13, 0x0001)
 
-    manager.init()
-    manager.read_config_file(config)
-    manager.start()
+    try:
+        manager.init()
+        manager.read_config_file(config)
+        manager.start()
 
-    amount_to_read = 1000000
-    buffer = (TDCHit * 2000)()
+        buffer = (TDCHit * 2000)()
 
-    of = open(output, 'w')
-
-    while amount_to_read > 0:
-        count = manager.read_tdc_hit(buffer)
-        for i in range(count):
-            of.write('%d, %d, %d\n' % (buffer[i].channel, buffer[i].type, buffer[i].time))
-        amount_to_read -= count
-
-    of.close()
-    manager.stop()
-    manager.clean_up()
+        with open(output, 'w') as of:
+            while amount_to_read > 0:
+                count = manager.read_tdc_hit(buffer)
+                for i in range(count):
+                    of.write('%d, %d, %d\n' % (buffer[i].channel, buffer[i].type, buffer[i].time))
+                amount_to_read -= count
+    finally:
+        manager.stop()
+        manager.clean_up()
 
 
-def test_read(output='test.dat', config='myexperiment.cfg'):
-    '''This is a translation to python of the C++ example on page 24 of the manual.'''
+def test_read(output='test.dat', config='myexperiment.cfg',
+              amount_to_read=1000000):
+    '''This is a translation to python of the C++ example on page 23
+    of the manual, with the output file, configuration file and amount
+    of events to read as arguments.'''
     import struct
     
     manager = TDCManager(0x1a13, 0x0001)
 
-    manager.init()
-    manager.read_config_file('myexperiment.cfg')
-    manager.start()
+    try:
+        manager.init()
+        manager.read_config_file(config)
+        manager.start()
 
-    amount_to_read = 1000000
-    buffer = numpy.empty(2000, dtype='uint32', order='C')
-    of = open('test.dat', 'wb')
-    of.write(struct.pack('<L', 0x200061a8))
+        buffer = numpy.empty(2000, dtype='uint32', order='C')
+
+        with open(output, 'wb') as of:
+            of.write(struct.pack('<L', 0x200061a8))
     
-    while amount_to_read > 0:
-        count = manager.read(buffer)
-        for i in range(min(count,amount_to_read)):
-            of.write(struct.pack('<L', int(buffer[i])))
-        amount_to_read -= count
-    
-    of.close()
-    manager.stop()
-    manager.clean_up()
+            while amount_to_read > 0:
+                count = manager.read(buffer)
+                for i in range(min(count,amount_to_read)):
+                    of.write(struct.pack('<L', int(buffer[i])))
+                amount_to_read -= count
+
+    finally:
+        manager.stop()
+        manager.clean_up()
 
 
 # If run as a script, then run the C++ example.
